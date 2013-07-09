@@ -1,0 +1,6 @@
+#ifndef QTREDIS_HEARDER
+
+#include <qtredis.h>
+
+
+#endif // QTREDIS_HEARDER
