@@ -10,9 +10,10 @@
 class QtRedis : public QObject
 {
     Q_OBJECT
+
 public:
-    explicit QtRedis(QString host, int port, QObject *parent = 0);
-    ~QtRedis();
+    QtRedis(QObject *parent = 0) : QObject(parent) {}
+    ~QtRedis() {}
 
     typedef struct Reply {
         QString type;
@@ -22,8 +23,6 @@ public:
         QVariant value;
     } Reply;
 
-    bool openConnection();
-    bool closeConnection();
     bool isConnected();
 
     void publish(QString, QString);
@@ -127,8 +126,8 @@ signals:
     void returnData(QtRedis::Reply);
 
 public slots:
-    void connectHost(const QString &host, const quint16 port = 6379);
-    void disconnectHost();
+    bool openConnection(const QString &host, int port = 6379);
+    void closeConnection();
 
 private slots:
     void slotConnected();
@@ -136,9 +135,7 @@ private slots:
     void response(QVariant);
 
 private:
-    Reader *reader;
-    QString host;
-    int port;
+    Reader reader;
     QStringList responseData;
 };
 

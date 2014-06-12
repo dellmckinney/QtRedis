@@ -15,7 +15,7 @@ class Reader : public QObject
     Q_OBJECT
 
 public:
-    Reader(QString host, int port);
+    Reader();
     ~Reader();
 
     void connectHost(const QString &host, quint16 port);
@@ -40,8 +40,6 @@ private:
     QTcpSocket *socket;
     bool reading;
     QSocketNotifier *notifier;
-    QString host;
-    int port;
 };
 
 #endif // READER_H

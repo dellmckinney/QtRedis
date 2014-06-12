@@ -11,8 +11,8 @@ class Test : public QObject
 {
     Q_OBJECT
 public:
-    explicit Test(QObject *parent = 0);
-    ~Test();
+    explicit Test(QObject *parent = 0) : QObject(parent) {}
+    ~Test() {}
 
     void startTest();
 
@@ -22,7 +22,7 @@ public slots:
     void slotMessage(QtRedis::Reply);
 
 private:
-    QtRedis *redis;
+    QtRedis redis;
 };
 
 #endif // TEST_H
