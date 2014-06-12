@@ -1,10 +1,7 @@
 #include "reader.h"
 
-Reader::Reader(QString host, int port)
+Reader::Reader()
 {
-    this->host = host;
-    this->port = port;
-
     socket = new QTcpSocket;
     reading = false;
 
@@ -16,6 +13,7 @@ Reader::Reader(QString host, int port)
 
 Reader::~Reader()
 {
+    socket->disconnectFromHost();
     delete socket;
 }
 

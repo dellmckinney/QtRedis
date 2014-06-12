@@ -1,28 +1,19 @@
 #include "qtredis.h"
 
-QtRedis::QtRedis(QString host, int port, QObject *parent) : QObject(parent)
+bool QtRedis::openConnection(const QString& host, int port)
 {
-    this->host = host;
-    this->port = port;
+    closeConnection();
 
-    reader = new Reader(host, port);
-    connect(reader, SIGNAL(response(QVariant)), this, SLOT(response(QVariant)));
-}
+    connect(&reader, SIGNAL(connected()), this, SLOT(slotConnected()));
+    connect(&reader, SIGNAL(response(QVariant)), this, SLOT(response(QVariant)));
 
-QtRedis::~QtRedis()
-{
-    delete reader;
-}
-
-bool QtRedis::openConnection()
-{
-    connectHost(host,port);
+    reader.connectHost(host,port);
 
     QEventLoop loop;
-    connect(reader, SIGNAL(connected()), &loop, SLOT(quit()));
+    connect(&reader, SIGNAL(connected()), &loop, SLOT(quit()));
     loop.exec();
 
-    if(!reader->isConnected())
+    if(!reader.isConnected())
     {
         return false;
     }
@@ -30,20 +21,15 @@ bool QtRedis::openConnection()
     return true;
 }
 
-void QtRedis::connectHost(const QString &host, const quint16 port)
+void QtRedis::closeConnection()
 {
-    reader->connectHost(host,port);
-    connect(reader, SIGNAL(connected()), this, SLOT(slotConnected()));
-}
-
-void QtRedis::disconnectHost()
-{
-    reader->disconnectHost();
+    reader.disconnectHost();
+    disconnect(&reader, 0, this, 0);
 }
 
 void QtRedis::slotConnected()
 {
-    connect(reader, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
+    connect(&reader, SIGNAL(disconnected()), this, SLOT(slotDisconnected()));
     emit connected();
 }
 
@@ -61,7 +47,7 @@ void QtRedis::publish(QString channel, QString message)
     cmd.append(" ");
     cmd.append(message);
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 }
 
 void QtRedis::subscribe(QString channel)
@@ -70,7 +56,7 @@ void QtRedis::subscribe(QString channel)
     cmd.append("SUBSCRIBE ");
     cmd.append(channel);
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 }
 
 void QtRedis::unsubscribe(QString channel)
@@ -79,7 +65,7 @@ void QtRedis::unsubscribe(QString channel)
     cmd.append("UNSUBSCRIBE ");
     cmd.append(channel);
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 }
 
 void QtRedis::psubscribe(QString channel)
@@ -88,7 +74,7 @@ void QtRedis::psubscribe(QString channel)
     cmd.append("PSUBSCRIBE ");
     cmd.append(channel);
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 }
 
 void QtRedis::punsubscribe(QString channel)
@@ -97,7 +83,7 @@ void QtRedis::punsubscribe(QString channel)
     cmd.append("PUNSUBSCRIBE ");
     cmd.append(channel);
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 }
 
 void QtRedis::response(QVariant response)
@@ -135,10 +121,10 @@ QtRedis::Reply QtRedis::command(QString cmd)
 {
     Reply reply;
 
-    reader->sendData(cmd);
+    reader.sendData(cmd);
 
     QEventLoop loop;
-    connect(reader, SIGNAL(response(QVariant)), &loop, SLOT(quit()));
+    connect(&reader, SIGNAL(response(QVariant)), &loop, SLOT(quit()));
     loop.exec();
 
     if(responseData[0] == "integer")
